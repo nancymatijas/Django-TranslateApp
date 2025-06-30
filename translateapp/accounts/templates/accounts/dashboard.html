@@ -1,0 +1,152 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Lijevi dio: Profil i poslovi -->
+        <div class="col-md-8">
+            <div class="card mb-4 shadow">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">
+                        👋 Pozdrav, <span class="text-primary">{{ user.account.name }}</span>
+                    </h3>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item">
+                            <strong>Token balance:</strong> {{ user.account.balance }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Email:</strong> {{ user.email }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Moji poslovi -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">📝 Moji poslovi</h4>
+                    {% if my_jobs %}
+                        {% for job in my_jobs %}
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <h5 class="mb-1">{{ job.title }}</h5>
+                                <p class="mb-1">
+                                    <strong>{{ job.description }}</strong><br>
+                                    <span class="badge bg-secondary">Iz: {{ job.source_lang }}</span>
+                                    <span class="badge bg-success">U: {{ job.target_lang }}</span>
+                                </p>
+                                <p class="mb-1"><strong>Područje:</strong> {{ job.field }}</p>
+                                <p class="mb-1"><strong>Budžet:</strong> {{ job.budget }}</p>
+                                <p class="mb-2">
+                                    <span class="badge 
+                                        {% if job.status == 'completed' %}bg-success
+                                        {% elif job.status == 'available' %}bg-primary
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {{ job.status|capfirst }}
+                                    </span>
+                                </p>
+                                <div class="ps-3">
+                                    <h6 class="mb-2">Ponude:</h6>
+                                    {% if job.bid_set.all %}
+                                        {% for bid in job.bid_set.all %}
+                                            <div class="border rounded p-2 mb-2 {% if bid.accepted %}border-success bg-white{% endif %}">
+                                                <strong>Ponuditelj:</strong>
+                                                <a href="{% url 'accounts:profile' bid.bidder.id %}">
+                                                    {{ bid.bidder.account.name }}
+                                                </a>
+                                                <br>
+                                                <strong>Cijena:</strong> {{ bid.price }}<br>
+                                                <strong>Prihvaćeno:</strong>
+                                                {% if bid.accepted %}
+                                                    <span class="badge bg-success">Da</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Ne</span>
+                                                    {% if user == job.user %}
+                                                        <form action="{% url 'app:accept_bid' bid.id %}" method="post" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-success ms-2">Prihvati</button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">Nema ponuda za ovaj posao.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Nemaš još niti jedan posao.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Poslovi na koje sam dao ponudu -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">📋 Poslovi na koje sam dao ponudu</h4>
+                    {% if my_jobs_bidder %}
+                        {% for job in my_jobs_bidder %}
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <h5 class="mb-1">{{ job.title }}</h5>
+                                <p class="mb-1">
+                                    <strong>{{ job.description }}</strong><br>
+                                    <span class="badge bg-secondary">Iz: {{ job.source_lang }}</span>
+                                    <span class="badge bg-success">U: {{ job.target_lang }}</span>
+                                </p>
+                                <p class="mb-1"><strong>Status:</strong>
+                                    <span class="badge 
+                                        {% if job.status == 'completed' %}bg-success
+                                        {% elif job.status == 'available' %}bg-primary
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {{ job.status|capfirst }}
+                                    </span>
+                                </p>
+                                <p class="mb-1"><strong>Vlasnik posla:</strong>
+                                    <a href="{% url 'accounts:profile' job.user.id %}">
+                                        {{ job.user.account.name }}
+                                    </a>
+                                </p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Nisi još dao ponudu ni na jedan posao.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Desni dio: Poruke -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">💬 Poruke</h4>
+                    <div class="messages" style="max-height: 500px; overflow-y: auto;">
+                        {% if my_messages %}
+                            {% for message in my_messages %}
+                                <div class="mb-3 p-2 rounded {% if user == message.sender %}bg-primary text-white{% else %}bg-light{% endif %}">
+                                    {% if user != message.sender %}
+                                        <small>
+                                            <strong>Od: 
+                                                <a href="{% url 'accounts:profile' message.sender.id %}" class="text-decoration-none">
+                                                    {{ message.sender.account.name }}
+                                                </a>
+                                            </strong>
+                                        </small><br>
+                                    {% endif %}
+                                    <small class="{% if user == message.sender %}text-white-50{% else %}text-muted{% endif %}">
+                                        {{ message.sent_at|date:"d.m.Y H:i" }}
+                                    </small>
+                                    <p class="mb-1">{{ message.text }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">Nema poruka.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

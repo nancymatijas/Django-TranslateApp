@@ -1,0 +1,96 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title mb-2">
+                        <i class="bi bi-person-circle"></i>
+                        {{ profile_user.account.name }} <small class="text-muted">profil</small>
+                    </h2>
+                    <p class="mb-1"><strong>Email:</strong> {{ profile_user.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accepted Jobs -->
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">✅ Prihvaćeni poslovi</h4>
+                    {% if accepted_jobs %}
+                        {% for job in accepted_jobs %}
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <h5 class="mb-1">{{ job.title }}</h5>
+                                <p class="mb-1">
+                                    <strong>{{ job.description }}</strong><br>
+                                    <span class="badge bg-secondary">Iz: {{ job.source_lang }}</span>
+                                    <span class="badge bg-success">U: {{ job.target_lang }}</span>
+                                </p>
+                                <p class="mb-1"><strong>Područje:</strong> {{ job.field }}</p>
+                                <p class="mb-1"><strong>Budžet:</strong> {{ job.budget }}</p>
+                                <p class="mb-2">
+                                    <span class="badge 
+                                        {% if job.status == 'completed' %}bg-success
+                                        {% elif job.status == 'available' %}bg-primary
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {{ job.status|capfirst }}
+                                    </span>
+                                </p>
+                                <p>
+                                    <strong>
+                                        {{ job.accepted_bidder.name }} je prihvaćen za ovaj posao s ponudom od {{ job.accepted_bid.price }}
+                                    </strong>
+                                </p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Nema prihvaćenih poslova.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Jobs -->
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">🏁 Završeni poslovi</h4>
+                    {% if completed_jobs %}
+                        {% for job in completed_jobs %}
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <h5 class="mb-1">{{ job.title }}</h5>
+                                <p class="mb-1">
+                                    <strong>{{ job.description }}</strong><br>
+                                    <span class="badge bg-secondary">Iz: {{ job.source_lang }}</span>
+                                    <span class="badge bg-success">U: {{ job.target_lang }}</span>
+                                </p>
+                                <p class="mb-1"><strong>Područje:</strong> {{ job.field }}</p>
+                                <p class="mb-1"><strong>Budžet:</strong> {{ job.budget }}</p>
+                                <p class="mb-2">
+                                    <span class="badge bg-success">
+                                        {{ job.status|capfirst }}
+                                    </span>
+                                </p>
+                                <p>
+                                    <strong>
+                                        {{ job.accepted_bidder.name }} je završio ovaj posao za {{ job.accepted_bid.price }}
+                                    </strong>
+                                </p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Nema završenih poslova.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
